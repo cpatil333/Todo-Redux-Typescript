@@ -1,15 +1,10 @@
-import './App.css'
+import "./App.css";
 //import TodoPage from './pages/TodoPage'
-import UserPage from './pages/UserPage'
 
 function App() {
-  
   return (
-    <>
-      {/* <TodoPage/> */}
-      <UserPage/>
-    </>
-  )
+     <div>App</div>
+  );
 }
 
-export default App
+export default App;
