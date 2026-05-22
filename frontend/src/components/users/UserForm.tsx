@@ -1,23 +1,35 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { createUserApi, updateUserApi } from "../../api/userApi";
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch } from "../../app/store";
+import type { AppDispatch, RootState } from "../../app/store";
 import {
   addUser,
   clearSelectedUser,
   updateUser,
 } from "../../features/users/userSlice";
+import { checkUserFormData } from "../../utils/checkUserFormData";
+
+type UserFormData = {
+  id: string;
+  username: string;
+  password: string;
+  email: string;
+};
+
+const initialFormData: UserFormData = {
+  id: "",
+  username: "",
+  password: "",
+  email: "",
+};
 
 const UserForm = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const [inputValue, setInputValue] = useState({
-    id: "",
-    username: "",
-    password: "",
-    email: "",
-  });
+  const [inputValue, setInputValue] = useState<UserFormData>(initialFormData);
 
-  const selectedUser = useSelector((state: any) => state.users.selectedUser);
+  const selectedUser = useSelector(
+    (state: RootState) => state.users.selectedUser,
+  );
 
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -27,6 +39,8 @@ const UserForm = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      if (!checkUserFormData(inputValue)) return;
+
       if (selectedUser) {
         const data = await updateUserApi(inputValue.id, {
           username: inputValue.username,
@@ -35,12 +49,8 @@ const UserForm = () => {
         });
         dispatch(updateUser(data));
         dispatch(clearSelectedUser());
-        setInputValue({
-          id: "",
-          username: "",
-          password: "",
-          email: "",
-        });
+        setInputValue(initialFormData);
+        
       } else {
         const data = await createUserApi({
           username: inputValue.username,
@@ -104,9 +114,7 @@ const UserForm = () => {
           />
         </div>
         <button type="submit">
-          {
-            selectedUser ? "Update User" : "Add User"
-          }
+          {selectedUser ? "Update User" : "Add User"}
         </button>
       </form>
     </div>

@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch } from "../../app/store";
+import type { AppDispatch, RootState } from "../../app/store";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   addTodo,
@@ -8,16 +8,27 @@ import {
   clearSelectedTodo,
 } from "../../features/todos/todoSlice";
 import { createTodoApi, updateTodoApi } from "../../api/todoApi";
+import { checkTodoFormData } from "../../utils/checkTodoFormData";
+
+type TodoFormData = {
+  title: string;
+  completed: false;
+  user: string;
+};
+
+const intiailFormData: TodoFormData = {
+  title: "",
+  completed: false,
+  user: "6a0c128868e69e1dfeeedbd4",
+};
 
 const TodoForm = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const [inputValue, setInputValue] = useState({
-    title: "",
-    completed: false,
-    user: "6a0c128868e69e1dfeeedbd4",
-  });
+  const [inputValue, setInputValue] = useState<TodoFormData>(intiailFormData);
 
-  const selectedItem = useSelector((state: any) => state.todos.selectedTodo);
+  const selectedItem = useSelector(
+    (state: RootState) => state.todos.selectedTodo,
+  );
 
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -30,9 +41,8 @@ const TodoForm = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
-      if (inputValue.title.trim() === "") {
-        alert("All field are compulsory..");
-      }
+      if (!checkTodoFormData(inputValue)) return;
+
       if (selectedItem) {
         const data = await updateTodoApi(inputValue.user, {
           title: inputValue.title,
@@ -52,11 +62,7 @@ const TodoForm = () => {
           user: inputValue.user,
         });
         dispatch(addTodo(data.todo));
-        setInputValue({
-          title: "",
-          completed: false,
-          user: "6a0c128868e69e1dfeeedbd4",
-        });
+        setInputValue(intiailFormData);
       }
     } catch (error) {
       dispatch(setError("Failed to create todo"));
